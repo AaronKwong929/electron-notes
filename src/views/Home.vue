@@ -1,13 +1,24 @@
 <template>
     <div class="app_wrapper">
-        <div class="sidebar_container"></div>
-        <div class="main_container"></div>
+        <div class="sidebar_container">
+            <file-search />
+            <el-button>123</el-button>
+        </div>
+        <div class="main_container">
+
+        </div>
     </div>
 </template>
 
 <script>
+import FileSearch from '@components/file-search';
+
 export default {
-    name: 'Home'
+    name: 'Home',
+
+    components: {
+        FileSearch
+    }
 };
 </script>
 
@@ -16,16 +27,17 @@ export default {
     display: flex;
     flex-direction: row;
     justify-content: center;
-    align-items: center;
+    height: 100vh;
+    width: 100vw;
 
     .sidebar_container {
-        max-width: 25%;
-        height: 100vh;
+        flex: 1;
         border-right: 1px solid #eaeefb;
+        background-color: lightcoral;
     }
 
     .main_container {
-        flex: 1;
+        flex: 3;
     }
 }
 </style>

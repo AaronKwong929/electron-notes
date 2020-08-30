@@ -26,6 +26,7 @@ module.exports = {
             .set('@static', resolve('src/static'))
             .set('@utils', resolve('src/utils'))
             .set('@mixins', resolve('src/mixins'))
-            .set('@filters', resolve('src/filters'));
+            .set('@filters', resolve('src/filters'))
+            .set(`@plugins`, resolve('src/plugins'));
     }
 };
