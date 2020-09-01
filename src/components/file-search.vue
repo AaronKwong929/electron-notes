@@ -1,10 +1,11 @@
 <template>
     <div class="search-container">
         <el-input placeholder="请输入内容" v-bind="$attrs" v-on="$listeners">
-            <!-- <el-button slot="append" icon="el-icon-search" /> -->
+            <el-button slot="append" icon="el-icon-search"></el-button>
         </el-input>
-        <el-dropdown>
-            <el-button type="primary" icon="el-icon-circle-plus-outline" circle />
+        
+        <el-dropdown style="margin-left: 10px; ">
+            <el-button type="primary" icon="el-icon-circle-plus-outline" />
             <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item @click="createFile">新建笔记</el-dropdown-item>
                 <el-dropdown-item divided @click="importFile">导入文件</el-dropdown-item>
@@ -22,7 +23,7 @@ export default {
         createFile() {
             this.$emit('createFile');
         },
-        
+
         // 导入文件
         importFile() {
             this.$emit('importFile');
@@ -35,16 +36,7 @@ export default {
 .search-container {
     display: flex;
     align-items: center;
-    padding: 12px 10px;
+    padding: 10px;
     background: #daecfe;
-
-    .el-dropdown {
-        .el-button--small {
-            margin-left: 10px;
-            padding: 6px;
-            font-size: 14px;
-            border-radius: 30%;
-        }
-    }
 }
 </style>
