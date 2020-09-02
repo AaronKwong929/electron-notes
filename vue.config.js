@@ -1,6 +1,6 @@
 const path = require('path');
 
-const resolve = dir => {
+const resolve = (dir) => {
     return path.join(__dirname, dir);
 };
 
@@ -16,7 +16,13 @@ module.exports = {
 
     parallel: true,
 
-    chainWebpack: config => {
+    pluginOptions: {
+        electronBuilder: {
+            nodeIntegration: true
+        }
+    },
+
+    chainWebpack: (config) => {
         config.resolve.alias
             .set('@assets', resolve('src/assets'))
             .set('@views', resolve('src/views'))

@@ -2,31 +2,44 @@
     <div class="app_wrapper">
         <div class="sidebar_container">
             <div class="sidebar_container-top">
-                <file-search />
+                <file-search v-model="searchTitle" />
             </div>
 
             <el-scrollbar class="sidebar_container-bottom">
                 <file-list :file-list="fileList" />
             </el-scrollbar>
         </div>
-        <div class="main_container"></div>
+        <div class="main_container">
+            <file-edit
+                v-model="fileItem.content"
+                :title.sync="fileItem.title"
+                :box-shadow="false"
+                :subfield="false"
+                :shortCut="false"
+                @change="onSubmit"
+            />
+        </div>
     </div>
 </template>
 
 <script>
 import FileSearch from '@components/file-search';
 import FileList from '@components/file-list';
+import FileEdit from '@components/file-edit';
 
 export default {
     name: 'Home',
 
     components: {
         FileSearch,
-        FileList
+        FileList,
+        FileEdit
     },
 
     data() {
         return {
+            searchTitle: '',
+
             fileList: [
                 { id: 1, title: '文件名 1', time: '2020-06-21' },
                 { id: 2, title: '文件名 2', time: '2020-06-21' },
@@ -43,8 +56,20 @@ export default {
                 { id: 13, title: '文件名 13', time: '2020-06-21' },
                 { id: 14, title: '文件名 14', time: '2020-06-21' },
                 { id: 15, title: '文件名 15', time: '2020-06-21' }
-            ]
+            ],
+
+            fileItem: {
+                title: 'electron-notes',
+                content: '123'
+            }
         };
+    },
+
+    methods: {
+        onSubmit(value) {
+            console.log(value);
+            console.log(this.fileItem);
+        }
     }
 };
 </script>

@@ -6,6 +6,8 @@ import router from '@router';
 import '@static/style/index.scss';
 import '@plugins/element-ui.js';
 import '@plugins/fontawesome.js';
+import '@plugins/mavon-editor.js';
+import '@plugins/database.js';
 
 Vue.config.productionTip = false;
 
