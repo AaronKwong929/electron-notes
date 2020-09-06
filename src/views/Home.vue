@@ -2,11 +2,19 @@
     <div class="app_wrapper">
         <div class="sidebar_container">
             <div class="sidebar_container-top">
-                <file-search v-model="searchTitle" />
+                <file-search
+                    v-model.trim="searchTitle"
+                    @create-file="createFile"
+                    @search-file="searchFile"
+                    @keyup.enter.native="searchFile"
+                    @clear="getFileList"
+                    @input="handleChange"
+                    clearable
+                />
             </div>
 
             <el-scrollbar class="sidebar_container-bottom">
-                <file-list :file-list="fileList" />
+                <file-list :file-list="fileList" :active.sync="activeIndex" />
             </el-scrollbar>
         </div>
         <div class="main_container">
@@ -16,7 +24,8 @@
                 :box-shadow="false"
                 :subfield="false"
                 :shortCut="false"
-                @change="onSubmit"
+                @change="updateContent"
+                @title-blur="updateTitle"
             />
         </div>
     </div>
@@ -26,6 +35,8 @@
 import FileSearch from '@components/file-search';
 import FileList from '@components/file-list';
 import FileEdit from '@components/file-edit';
+
+import dayjs from 'dayjs';
 
 export default {
     name: 'Home',
@@ -39,36 +50,101 @@ export default {
     data() {
         return {
             searchTitle: '',
-
-            fileList: [
-                { id: 1, title: '文件名 1', time: '2020-06-21' },
-                { id: 2, title: '文件名 2', time: '2020-06-21' },
-                { id: 3, title: '文件名 3', time: '2020-06-21' },
-                { id: 4, title: '文件名 4', time: '2020-06-21' },
-                { id: 5, title: '文件名 5', time: '2020-06-21' },
-                { id: 6, title: '文件名 6', time: '2020-06-21' },
-                { id: 7, title: '文件名 7', time: '2020-06-21' },
-                { id: 8, title: '文件名 8', time: '2020-06-21' },
-                { id: 9, title: '文件名 9', time: '2020-06-21' },
-                { id: 10, title: '文件名 10', time: '2020-06-21' },
-                { id: 11, title: '文件名 11', time: '2020-06-21' },
-                { id: 12, title: '文件名 12', time: '2020-06-21' },
-                { id: 13, title: '文件名 13', time: '2020-06-21' },
-                { id: 14, title: '文件名 14', time: '2020-06-21' },
-                { id: 15, title: '文件名 15', time: '2020-06-21' }
-            ],
-
+            fileList: [],
             fileItem: {
-                title: 'electron-notes',
-                content: '123'
-            }
+                title: '',
+                content: ''
+            },
+            activeIndex: 0,
+            contentTimerId: null
         };
     },
 
     methods: {
-        onSubmit(value) {
-            console.log(value);
-            console.log(this.fileItem);
+        // 搜索文件
+        async getFileList(query = {}) {
+            const list = await this.$db.markdown.find(query).sort({ updatedAt: -1 });
+            list.map((item) => {
+                item.originalContent = item.content;
+                item.createdAt = dayjs(item.createdAt).format(`YYYY-MM-DD HH:mm:ss`);
+                item.updatedAt = dayjs(item.updatedAt).format(`YYYY-MM-DD HH:mm:ss`);
+                return item;
+            });
+            this.fileList = list;
+        },
+
+        // 选中第一个内容
+        activeFirstItem() {
+            const [fileItem] = this.fileList;
+            this.fileItem = fileItem;
+            this.activeIndex = 0;
+        },
+
+        // 创建文件
+        createFile() {
+            const defaultFile = { title: `新建笔记`, content: `` };
+            this.$db.markdown.insert(defaultFile).then(async () => {
+                await this.refreshList();
+            });
+        },
+
+        // 更新标题
+        updateTitle(title) {
+            const { _id } = this.fileItem;
+
+            this.$db.markdown.update({ _id, title: { $ne: title } }, { $set: { title } }).then(async () => {
+                await this.refreshList();
+            });
+        },
+
+        // 更新内容
+        updateContent(content) {
+            const { _id, originalContent } = this.fileItem;
+            if (originalContent === content) return;
+            if (this.contentTimerId) clearTimeout(this.contentTimerId);
+            this.contentTimerId = setTimeout(() => {
+                this.$db.markdown.update({ _id, content: { $ne: content } }, { $set: { content } }).then(async () => {
+                    await this.refreshList();
+                });
+            }, 3000);
+        },
+
+        // 刷新列表
+        async refreshList() {
+            // if (this.activeIndex === 0) return;
+            await this.getFileList();
+            this.activeFirstItem();
+        },
+
+        // 搜索标题
+        searchFile() {
+            if (!this.searchTitle) return;
+            const reg = new RegExp(`${this.searchTitle}`, `i`),
+                query = { title: reg };
+            return this.getFileList(query);
+        },
+
+        // 输入栏发生变化
+        handleChange(val) {
+            if (!val) {
+                this.getFileList();
+            }
+        },
+
+        async init() {
+            await this.getFileList();
+            if (this.fileList.length === 0) return;
+            this.activeFirstItem();
+        }
+    },
+
+    mounted() {
+        this.init();
+    },
+
+    watch: {
+        activeIndex(newv) {
+            this.fileItem = this.fileList[newv];
         }
     }
 };
@@ -86,9 +162,6 @@ export default {
         border-right: 1px solid #eaeefb;
         display: flex;
         flex-direction: column;
-
-        &-top {
-        }
 
         &-bottom {
             flex: 1;

@@ -1,14 +1,14 @@
 <template>
     <div class="search-container">
         <el-input placeholder="请输入内容" v-bind="$attrs" v-on="$listeners">
-            <el-button slot="append" icon="el-icon-search"></el-button>
+            <el-button slot="append" icon="el-icon-search" @click.native="$emit(`search-file`)"></el-button>
         </el-input>
-        
-        <el-dropdown style="margin-left: 10px; ">
+
+        <el-dropdown style="margin-left: 10px">
             <el-button type="primary" icon="el-icon-circle-plus-outline" />
             <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item @click="createFile">新建笔记</el-dropdown-item>
-                <el-dropdown-item divided @click="importFile">导入文件</el-dropdown-item>
+                <el-dropdown-item @click.prevent.native="$emit('create-file')">新建笔记</el-dropdown-item>
+                <el-dropdown-item divided @click.prevent.native="$emit('import-file')">导入文件</el-dropdown-item>
             </el-dropdown-menu>
         </el-dropdown>
     </div>
@@ -16,19 +16,7 @@
 
 <script>
 export default {
-    name: 'FileSearch',
-
-    methods: {
-        // 新建笔记
-        createFile() {
-            this.$emit('createFile');
-        },
-
-        // 导入文件
-        importFile() {
-            this.$emit('importFile');
-        }
-    }
+    name: 'FileSearch'
 };
 </script>
 
