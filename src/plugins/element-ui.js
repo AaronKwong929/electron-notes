@@ -13,8 +13,10 @@ import {
 import 'element-ui/lib/theme-chalk/index.css';
 Vue.prototype.$ELEMENT = { size: 'small' };
 
+
+// 引入message和 messageBox的方式
 MessageBox.install = function (Vue, options) {
-    Vue.prototype.$confirm = MessageBox;
+    Vue.prototype.$confirm = MessageBox.confirm;
 };
 
 Message.install = function (Vue, options) {

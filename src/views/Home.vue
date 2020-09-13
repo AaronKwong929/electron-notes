@@ -14,7 +14,6 @@
             <file-list :file-list="fileList" :active.sync="activeIndex" :selectedFile.sync="selectedFile">
                 <template #menu>
                     <li @click="switchTopStatus">{{ selectedFile.isTop ? `取消置顶` : `置顶` }}</li>
-                    
                     <li @click="fileDelete">删除</li>
                 </template>
             </file-list>
@@ -84,11 +83,12 @@ export default {
             const [fileItem] = this.fileList;
             this.fileItem = fileItem;
             this.activeIndex = 0;
+            return;
         },
 
         // 创建文件
-        createFile() {
-            const defaultFile = { title: `新建笔记`, content: ``, isTop: false };
+        createFile(title = `新建笔记`, content = ``) {
+            const defaultFile = { title, content, isTop: false };
             this.$db.markdown.insert(defaultFile).then(async () => {
                 await this.refreshList();
             });
@@ -97,6 +97,7 @@ export default {
         // 更新标题
         updateTitle(title) {
             const { _id } = this.fileItem;
+            if (!_id) return this.createFile(this.fileItem.title);
             this.$db.markdown.update({ _id, title: { $ne: title } }, { $set: { title } }).then(async () => {
                 await this.refreshList();
             });
@@ -105,6 +106,7 @@ export default {
         // 更新内容
         updateContent(content) {
             const { _id, originalContent } = this.fileItem;
+            if (!_id) return this.createFile(undefined, this.fileItem.content);
             if (originalContent === content) return;
             if (this.contentTimerId) clearTimeout(this.contentTimerId);
             this.contentTimerId = setTimeout(() => {
@@ -116,7 +118,11 @@ export default {
 
         // 删除文章
         fileDelete() {
-            this.$confirm(`删除文章`)
+            this.$confirm(`删除文章：${this.selectedFile.title}？`, `提示`, {
+                showCancelButton: true,
+                cancelButtonText: '取消',
+                type: 'warning'
+            })
                 .then(() => {
                     const { _id } = this.selectedFile;
                     this.$db.markdown
@@ -164,7 +170,14 @@ export default {
 
         async init() {
             await this.getFileList();
-            if (this.fileList.length === 0) return;
+            if (this.fileList.length === 0) {
+                this.fileItem = {
+                    content: '',
+                    title: '',
+                    isTop: false
+                };
+                return;
+            }
             this.activeFirstItem();
         }
     },
