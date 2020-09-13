@@ -161,7 +161,7 @@ export default {
             return this.getFileList(query);
         },
 
-        // 输入栏发生变化
+        // 输入栏发生变化（如果值空了就刷新列表）
         handleChange(val) {
             if (!val) {
                 this.getFileList();

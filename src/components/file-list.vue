@@ -40,7 +40,9 @@ export default {
     data() {
         return {
             activeIndex: 0,
-            visible: false
+            visible: false,
+            top: 0,
+            left: 0
         };
     },
 
@@ -160,10 +162,12 @@ export default {
     font-size: 12px;
     font-weight: 400;
     z-index: 3000;
+
     li {
         margin: 0;
         padding: 7px 16px;
         cursor: pointer;
+
         &:hover {
             color: #66b1ff;
             background: #ecf5ff;
