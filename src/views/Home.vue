@@ -1,22 +1,25 @@
 <template>
     <div class="app_wrapper">
         <div class="sidebar_container">
-            <div class="sidebar_container-top">
-                <file-search
-                    v-model.trim="searchTitle"
-                    @create-file="createFile"
-                    @search-file="searchFile"
-                    @keyup.enter.native="searchFile"
-                    @clear="getFileList"
-                    @input="handleChange"
-                    clearable
-                />
-            </div>
+            <file-search
+                v-model.trim="searchTitle"
+                @create-file="createFile"
+                @search-file="searchFile"
+                @keyup.enter.native="searchFile"
+                @clear="getFileList"
+                @input="handleChange"
+                clearable
+            />
 
-            <el-scrollbar class="sidebar_container-bottom">
-                <file-list :file-list="fileList" :active.sync="activeIndex" />
-            </el-scrollbar>
+            <file-list :file-list="fileList" :active.sync="activeIndex" :selectedFile.sync="selectedFile">
+                <template #menu>
+                    <li @click="switchTopStatus">{{ selectedFile.isTop ? `取消置顶` : `置顶` }}</li>
+                    
+                    <li @click="fileDelete">删除</li>
+                </template>
+            </file-list>
         </div>
+
         <div class="main_container">
             <file-edit
                 v-model="fileItem.content"
@@ -53,17 +56,20 @@ export default {
             fileList: [],
             fileItem: {
                 title: '',
-                content: ''
+                content: '',
+                isTop: false
             },
             activeIndex: 0,
-            contentTimerId: null
+            contentTimerId: null,
+
+            selectedFile: {} // 右键菜单选中的文件数据
         };
     },
 
     methods: {
         // 搜索文件
         async getFileList(query = {}) {
-            const list = await this.$db.markdown.find(query).sort({ updatedAt: -1 });
+            const list = await this.$db.markdown.find(query).sort({ isTop: -1, updatedAt: -1 });
             list.map((item) => {
                 item.originalContent = item.content;
                 item.createdAt = dayjs(item.createdAt).format(`YYYY-MM-DD HH:mm:ss`);
@@ -82,7 +88,7 @@ export default {
 
         // 创建文件
         createFile() {
-            const defaultFile = { title: `新建笔记`, content: `` };
+            const defaultFile = { title: `新建笔记`, content: ``, isTop: false };
             this.$db.markdown.insert(defaultFile).then(async () => {
                 await this.refreshList();
             });
@@ -91,7 +97,6 @@ export default {
         // 更新标题
         updateTitle(title) {
             const { _id } = this.fileItem;
-
             this.$db.markdown.update({ _id, title: { $ne: title } }, { $set: { title } }).then(async () => {
                 await this.refreshList();
             });
@@ -107,6 +112,32 @@ export default {
                     await this.refreshList();
                 });
             }, 3000);
+        },
+
+        // 删除文章
+        fileDelete() {
+            this.$confirm(`删除文章`)
+                .then(() => {
+                    const { _id } = this.selectedFile;
+                    this.$db.markdown
+                        .remove({ _id })
+                        .then((num) => {
+                            this.$message.success(`删除了${num}个项目`);
+                            this.init();
+                        })
+                        .catch(() => {
+                            this.$message.error('删除失败');
+                        });
+                })
+                .catch(() => {});
+        },
+
+        // 切换文章置顶状态
+        switchTopStatus() {
+            const { _id, isTop } = this.selectedFile;
+            this.$db.markdown.update({ _id }, { $set: { isTop: !isTop } }).then(() => {
+                this.init();
+            });
         },
 
         // 刷新列表
@@ -163,10 +194,12 @@ export default {
         display: flex;
         flex-direction: column;
 
-        &-bottom {
-            flex: 1;
-            overflow: hidden;
-        }
+        // &-bottom {
+        //     flex: 1;
+        //     overflow: hidden;
+        //     display: flex;
+        //     flex-direction: column;
+        // }
     }
 
     .main_container {
